@@ -1,0 +1,15 @@
+com\soaint\AWS\controller\AwsController.class
+com\soaint\AWS\model\Links.class
+com\soaint\security\PropertiesRead.class
+com\soaint\AWS\AwsApplication.class
+com\soaint\AWS\model\Contacto.class
+com\soaint\AWS\model\AddressType.class
+com\soaint\AWS\model\ContactoOSC.class
+com\soaint\AWS\service\AwsService.class
+com\soaint\AWS\service\AwsServiceOSC.class
+com\soaint\security\PropertiesReader.class
+com\soaint\repository\IDao.class
+com\soaint\AWS\model\Name.class
+com\soaint\AWS\model\Emails.class
+com\soaint\AWS\service\AwsServiceEloqua.class
+com\soaint\AWS\model\ContactoEloqua.class
