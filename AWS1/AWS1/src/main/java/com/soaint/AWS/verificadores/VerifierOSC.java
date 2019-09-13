@@ -1,8 +1,13 @@
 package com.soaint.AWS.verificadores;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.json.JSONObject;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soaint.AWS.model.ContactoOSC;
+import com.soaint.AWS.model.Lead;
 import com.soaint.AWS.service.AwsServiceOSC;
 
 public class VerifierOSC {
@@ -22,8 +27,25 @@ public class VerifierOSC {
 		}//if
 		return false;
 	}//checkUser()
-
 	
+	public boolean checkLeadExists(String contacto) throws Exception {
+		
+		AwsServiceOSC servicio= new AwsServiceOSC();
+
+		Lead lead= new Lead();
+		ObjectMapper obj = new ObjectMapper();
+		JsonNode node = obj.readTree(contacto.toString());
+		
+		ContactoOSC[] c= servicio.getUser(node.get("emailaddress").asText());
+		ContactoOSC contact= c[0];
+				
+		if(servicio.getLead(contact.getPartyNumber())=="") {
+			return false;
+		}
+		
+		return true;
+	}
+
 	public boolean checkUserSave(ContactoOSC contacto) throws Exception {
 		
 		AwsServiceOSC servicio= new AwsServiceOSC();
@@ -33,5 +55,16 @@ public class VerifierOSC {
 		}//if
 		return false;
 	}//checkUser()
+	
+	public boolean checkUser(ContactoOSC contacto, String email) throws Exception {
+		
+		AwsServiceOSC servicio= new AwsServiceOSC();
+
+		if(servicio.getUser(email)[0].getEmailAddress()==contacto.getEmailAddress()) {
+			
+			return true;	
+		}//if
+		return false;
+		}//checkUser()
 
 }

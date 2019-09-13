@@ -53,17 +53,15 @@ public class AwsServiceEloqua implements IDao{
 	
 	@Override
 	public ContactoEloqua getUser(String email) throws ClientProtocolException, IOException {
-		String emailTransformed= UriTransformer.JsonTransformerURIEmail(email);
 		
+		String emailTransformed= UriTransformer.JsonTransformerURIEmail(email);
 		String url=p.getURLEloqua()+"*"+emailTransformed;
 		
 		HttpClient client = HttpClientBuilder.create().build();
 
 		HttpGet request= new HttpGet(url);
 		setHeader(request);
-		
 		HttpResponse response= client.execute(request);
-		
 		String resultado= EntityUtils.toString(response.getEntity());
 		
 		System.out.println(resultado);
@@ -88,6 +86,7 @@ public class AwsServiceEloqua implements IDao{
 
 	@Override
 	public void deleteUser(String id) throws Exception{
+		
 		String url=p.getURLDeleteEloqua()+id;
 		
 		HttpClient client = HttpClientBuilder.create().build();
@@ -99,27 +98,27 @@ public class AwsServiceEloqua implements IDao{
 	@Override
 	public void saveUserOther(String contacto) throws Exception, IOException {
 		
-	//	if(checkUserExist(contacto)==false) {
+		if(verifier.checkUserExist(contacto)==false) {
 		
-		String url=p.getURLPostEloqua();
+			String url=p.getURLPostEloqua();
 		
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost request= new HttpPost(url);
-        setHeader(client, request);
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpPost request= new HttpPost(url);
+			setHeader(client, request);
+			
+			System.out.println(contacto.toString());
         
-        System.out.println(contacto.toString());
-        
-        StringEntity entity = new StringEntity(serializador.serializeContact(contacto),
+			StringEntity entity = new StringEntity(serializador.serializeContact(contacto),
                 ContentType.APPLICATION_JSON);
 
-        System.out.println("JSONEND:"+serializador.serializeContact(contacto));
-        request.setEntity(entity);
-        HttpResponse response = client.execute(request);
+			System.out.println("JSONEND:"+serializador.serializeContact(contacto));
+			request.setEntity(entity);
+			HttpResponse response = client.execute(request);
 
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-		//}
-		}
+			System.out.println("Response Code : "
+					+ response.getStatusLine().getStatusCode());
+		}//if
+	}
 	
 	@Override
 	public void saveUser(String email, String nombre) throws Exception {
@@ -195,6 +194,7 @@ public class AwsServiceEloqua implements IDao{
 		return false;
 	}//checkUser()
 	
+	/*
 	public boolean checkUserExist(String contacto) throws Exception {
 		
 		AwsServiceEloqua servicio= new AwsServiceEloqua();
@@ -221,6 +221,6 @@ public class AwsServiceEloqua implements IDao{
 		}//if
 		return false;
 	}//checkUser()
-
+*/
 	
 }//Class

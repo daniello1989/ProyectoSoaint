@@ -150,7 +150,7 @@ public class AwsService implements IDao{
         
         Contacto contacto=setContacto(email, nombre);
 
-        if(checkUser(contacto, email)!=true) {
+        if(verifier.checkUser(contacto, email)!=true) {
         String ejemplo= gson.toJson(contacto);
 
         System.out.println(ejemplo);
@@ -168,13 +168,12 @@ public class AwsService implements IDao{
 	@Override
 	public void saveUserOther(String contacto) throws UnsupportedCharsetException, Exception {
 		
-		//if(checkUserExist(contacto)==true) {
+		if(verifier.checkUserExist(contacto)==false) {
 			String url=p.getSaveURLRightNow();
 	
 		
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpPost request= new HttpPost(url);
-        
         
 			StringEntity entity = new StringEntity(serializer.serializeContact(contacto),
                 ContentType.APPLICATION_JSON);
@@ -185,10 +184,8 @@ public class AwsService implements IDao{
 
 			System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode()); 
-		
-			//}//if
+		}//if
 		}//saveUserOther()
-
 	
 	//**********************ANOTHER METHODS**********************
 	private Contacto setContacto(String email, String nombre) {
@@ -205,17 +202,6 @@ public class AwsService implements IDao{
 		return contacto;
 	}//setContacto()
 	
-	
-	public boolean checkUser(Contacto contacto, String email) throws Exception {
-		
-		AwsService servicio= new AwsService();
-		
-		if(servicio.getUser(email).getEmails().getAddress()==contacto.getEmails().getAddress()) {
-			return true;	
-		}//if
-		return false;
-	}//checkUser()
-	
 	public String name(String name, int number) {
 		
 		String[] datos = name.split(" ");
@@ -223,20 +209,4 @@ public class AwsService implements IDao{
 		return dato;	
 	}
 	
-	public boolean checkUserExist(String contacto) throws Exception {
-		
-		AwsService s= new AwsService();
-		Contacto c = new Contacto();
-		JSONObject object = new JSONObject(contacto);
-		c.setName(new Name(object.getString("firstname"), object.getString("lastname")));
-		c.setEmails(new Emails(object.getString("emailaddress"), new AddressType()));
-		
-		String mail=s.getUser(c.getEmails().getAddress()).getEmails().getAddress();
-		System.out.println(s.getUser(c.getEmails().getAddress()));
-		if(s.getUser(c.getEmails().getAddress().toString()).getEmails().getAddress()!=null) {
-			return true;
-		}//if
-		return false;
-	}//checkUser()
-
 }//class

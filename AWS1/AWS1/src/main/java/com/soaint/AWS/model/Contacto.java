@@ -55,6 +55,6 @@ public class Contacto{
 	
 	@Override
 	public String toString() {
-		return "Contacto [id=" + id + ".]";
+		return "Contacto [id=" + id + ", name=" + name + ", emails=" + emails + "]";
 	}
 }
