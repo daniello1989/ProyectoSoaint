@@ -31,22 +31,39 @@ import com.soaint.AWS.model.ContactoOSC;
 import com.soaint.AWS.model.Emails;
 import com.soaint.AWS.model.Lead;
 import com.soaint.AWS.model.Name;
+import com.soaint.AWS.verificadores.VerifierOSC;
+import com.soaint.deserializer.DeserializerLeadOSC;
+import com.soaint.deserializer.DeserializerOSC;
 import com.soaint.encoder.Coder;
 import com.soaint.repository.IDao;
 import com.soaint.security.PropertiesRead;
 import com.soaint.security.PropertiesReader;
+import com.soaint.serializers.SerializerLeadOSC;
+import com.soaint.serializers.SerializerOSC;
 import com.soaint.transformer.UriTransformer;
 
 @Service
 public class AwsServiceOSC implements IDao{
 	
+	
+	//Attributes
 	private UriTransformer transformer;
 	private static PropertiesReader p;
 	private Coder c;
+	private SerializerOSC serializer;
+	private DeserializerOSC deserializer;
+	private SerializerLeadOSC serializerLead;
+	private DeserializerLeadOSC deserializerLead;
+	private VerifierOSC verifier;
 	
 	public AwsServiceOSC() throws FileNotFoundException, IOException {
+		serializer= new SerializerOSC();
+		deserializer= new DeserializerOSC();
+		serializerLead= new SerializerLeadOSC();
+		deserializerLead= new DeserializerLeadOSC();
 		
 		p=new PropertiesReader();
+		verifier= new VerifierOSC();
 	}//constructor
 
 	@Override
@@ -73,15 +90,15 @@ public class AwsServiceOSC implements IDao{
 	    	
 	    jsonObject=lista.getJSONObject(0);
 
-	    //contactoOSC=deserializeContact(jsonObject.toString());
-		
+	    contactoOSC=deserializer.deserializeContact(jsonObject);
+	    /*
 	    ObjectMapper obj = new ObjectMapper();
 		JsonNode node = obj.readTree(jsonObject.toString());
 		contactoOSC.setPartyNumber(node.get("PartyNumber").asText());
 		contactoOSC.setFirstName(node.get("FirstName").asText());
 		contactoOSC.setLastName(node.get("LastName").asText());
 		contactoOSC.setEmailAddress(node.get("EmailAddress").asText());
-
+	     */
 		ContactoOSC[] contacto= {contactoOSC};
 	    System.out.println(contacto[0].toString());
 		
@@ -141,9 +158,31 @@ public class AwsServiceOSC implements IDao{
 
 	    System.out.println(jsonObject);
 	   
-	    return deserializateLead(lista.getJSONObject(0));
-	   
-		}
+	    return deserializerLead.deserializateLead(lista.getJSONObject(0));
+	   	}
+	
+	public void addLead(String email) throws Exception {
+		
+		String url=p.createLead();
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost request= new HttpPost(url);
+        
+        ContactoOSC[] c= getUser(email);
+        		
+        Lead lead= new Lead();
+        lead.setContactPartyNumber(c[0].getPartyNumber());
+        lead.setName(c[c.length-1].getEmailAddress()+"-"+"Lead");
+        
+        StringEntity entity = new StringEntity(serializerLead.serializeLead(lead),
+                ContentType.APPLICATION_JSON);
+        
+        request.setEntity(entity);
+        setHeader(client, request);
+        
+	}//addLead()
+
+
 
 	@Override
 	public void saveUser(String email, String nombre) throws Exception {
@@ -171,7 +210,7 @@ public class AwsServiceOSC implements IDao{
 
             System.out.println("Response Code : "
                     + response.getStatusLine().getStatusCode());
-        }    
+            }    
 	}//saveUser()
 	
 	@Override
@@ -187,8 +226,8 @@ public class AwsServiceOSC implements IDao{
 
         System.out.println(contacto.toString());
         
-        System.out.println("JSONSEND: " + serializeContact(contacto));
-            StringEntity entity = new StringEntity(serializeContact(contacTransformed),
+        System.out.println("JSONSEND: " + serializer.serializeContact(contacto));
+            StringEntity entity = new StringEntity(serializer.serializeContact(contacTransformed),
                     ContentType.APPLICATION_JSON);
 
            
@@ -246,6 +285,7 @@ public class AwsServiceOSC implements IDao{
 	return false;
 	}//checkUser()
 	
+	/*
 	public String serializeContact(String contacto) throws ClientProtocolException, IOException {
 		
 		ContactoOSC contactoOSC = new ContactoOSC();
@@ -257,8 +297,8 @@ public class AwsServiceOSC implements IDao{
 		
 		return obj.writeValueAsString(contactoOSC);
    	}
-	
-public String serializeLead(Lead lead) throws ClientProtocolException, IOException {
+
+	public String serializeLead(Lead lead) throws ClientProtocolException, IOException {
 						
 		ObjectMapper obj= new ObjectMapper();
 		return obj.writeValueAsString(lead);
@@ -287,6 +327,7 @@ public String serializeLead(Lead lead) throws ClientProtocolException, IOExcepti
 		return id;
 	}
 
+	 */
 	public boolean checkUserExist(String contacto) throws Exception {
 		
 		AwsServiceOSC servicio= new AwsServiceOSC();
@@ -306,7 +347,6 @@ public String serializeLead(Lead lead) throws ClientProtocolException, IOExcepti
 	
 	public boolean checkUserSave(ContactoOSC contacto) throws Exception {
 		
-		
 		AwsServiceOSC servicio= new AwsServiceOSC();
 		
 		if(servicio.getUser(contacto.getEmailAddress())[0].getEmailAddress()!=null) {
@@ -314,28 +354,5 @@ public String serializeLead(Lead lead) throws ClientProtocolException, IOExcepti
 		}//if
 		return false;
 	}//checkUser()
-	
-	public void addLead(String email) throws Exception {
-		
-		String url=p.createLead();
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost request= new HttpPost(url);
-        
-        ContactoOSC[] c= getUser(email);
-        		
-        Lead lead= new Lead();
-        lead.setContactPartyNumber(c[0].getPartyNumber());
-        lead.setName(c[c.length-1].getEmailAddress()+"-"+"Lead");
-        
-        System.out.println(serializeLead(lead));
-        StringEntity entity = new StringEntity(serializeLead(lead),
-                ContentType.APPLICATION_JSON);
-        
-        request.setEntity(entity);
-        setHeader(client, request);
-        
-	}//addLead()
-	
 	
 }//AwsServiceOSC

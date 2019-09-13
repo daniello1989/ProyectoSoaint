@@ -26,23 +26,30 @@ import com.soaint.AWS.model.Contacto;
 import com.soaint.AWS.model.ContactoEloqua;
 import com.soaint.AWS.model.Emails;
 import com.soaint.AWS.model.Name;
+import com.soaint.AWS.verificadores.VerifierEloqua;
 import com.soaint.encoder.Coder;
 import com.soaint.repository.IDao;
 import com.soaint.security.PropertiesRead;
 import com.soaint.security.PropertiesReader;
+import com.soaint.serializers.SerializerEloqua;
 import com.soaint.transformer.UriTransformer;
 
 @Service
 public class AwsServiceEloqua implements IDao{
 
+	//Attributes
 	private UriTransformer transformer;
 	private static PropertiesReader p;
 	private Coder c;
+	private SerializerEloqua serializador; 
+	private VerifierEloqua verifier;
 	
 	public AwsServiceEloqua() throws FileNotFoundException, IOException {
 		
+		serializador=new SerializerEloqua();
 		p=new PropertiesReader();
-	}
+		verifier= new VerifierEloqua();
+	}//CONSTRUCTOR
 	
 	@Override
 	public ContactoEloqua getUser(String email) throws ClientProtocolException, IOException {
@@ -88,6 +95,31 @@ public class AwsServiceEloqua implements IDao{
 		
 		setHeader(client, request);	
 	}//deleteUser()
+	
+	@Override
+	public void saveUserOther(String contacto) throws Exception, IOException {
+		
+	//	if(checkUserExist(contacto)==false) {
+		
+		String url=p.getURLPostEloqua();
+		
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost request= new HttpPost(url);
+        setHeader(client, request);
+        
+        System.out.println(contacto.toString());
+        
+        StringEntity entity = new StringEntity(serializador.serializeContact(contacto),
+                ContentType.APPLICATION_JSON);
+
+        System.out.println("JSONEND:"+serializador.serializeContact(contacto));
+        request.setEntity(entity);
+        HttpResponse response = client.execute(request);
+
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+		//}
+		}
 	
 	@Override
 	public void saveUser(String email, String nombre) throws Exception {
@@ -162,40 +194,6 @@ public class AwsServiceEloqua implements IDao{
 		}//if
 		return false;
 	}//checkUser()
-	
-	public String serializeContact(String contacto) throws ClientProtocolException, IOException {
-		ContactoEloqua contactoEloqua = new ContactoEloqua();
-		JSONObject object = new JSONObject(contacto);
-		contactoEloqua.setName(object.getString(UriTransformer.JsonTransformerJSON("firstname")));
-		contactoEloqua.setEmailAddress(object.getString(UriTransformer.JsonTransformerJSON("emailaddress")));
-		ObjectMapper obj = new ObjectMapper();
-		return obj.writeValueAsString(contactoEloqua).toString();
-   	}
-
-
-	public void saveUserOther(String contacto) throws Exception, IOException {
-		
-	//	if(checkUserExist(contacto)==false) {
-		
-		String url=p.getURLPostEloqua();
-		
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost request= new HttpPost(url);
-        setHeader(client, request);
-        
-        System.out.println(contacto.toString());
-        
-        StringEntity entity = new StringEntity(serializeContact(contacto),
-                ContentType.APPLICATION_JSON);
-
-        System.out.println("JSONEND:"+serializeContact(contacto));
-        request.setEntity(entity);
-        HttpResponse response = client.execute(request);
-
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-		//}
-		}
 	
 	public boolean checkUserExist(String contacto) throws Exception {
 		

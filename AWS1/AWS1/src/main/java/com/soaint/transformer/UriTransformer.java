@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class UriTransformer {
 	
-	private static Map<Character, String> MAP_NORM;
 	
 	public static String JsonTransformerURIEmail(String jsonSend) {
         jsonSend = jsonSend.replace("ñ", "n").replace("Ñ", "N")

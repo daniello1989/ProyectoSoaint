@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -44,21 +45,28 @@ import com.soaint.AWS.model.AddressType;
 import com.soaint.AWS.model.Contacto;
 import com.soaint.AWS.model.Emails;
 import com.soaint.AWS.model.Name;
+import com.soaint.AWS.verificadores.VerifierRN;
 import com.soaint.encoder.Coder;
 import com.soaint.repository.IDao;
 import com.soaint.security.PropertiesReader;
+import com.soaint.serializers.SerializerRN;
 import com.soaint.transformer.UriTransformer;
 
 
 @Service
 public class AwsService implements IDao{
 	
+	//Attributes
 	private UriTransformer transformer;
 	PropertiesReader p;
 	private Coder c;
+	private SerializerRN serializer;
+	private VerifierRN verifier;
 	
 	public AwsService() throws FileNotFoundException, IOException {
 		p= new PropertiesReader();
+		serializer= new SerializerRN();
+		verifier= new VerifierRN();
 	}//constructor
 	
 	@Override
@@ -167,12 +175,11 @@ public class AwsService implements IDao{
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpPost request= new HttpPost(url);
         
-			System.out.println(contacto.toString());
         
-			StringEntity entity = new StringEntity(serializeContact(contacto),
+			StringEntity entity = new StringEntity(serializer.serializeContact(contacto),
                 ContentType.APPLICATION_JSON);
 
-			System.out.println(serializeContact(contacto));
+			System.out.println(serializer.serializeContact(contacto));
 			request.setEntity(entity);
 			HttpResponse response = client.execute(request);
 
@@ -215,18 +222,6 @@ public class AwsService implements IDao{
 		String dato= datos[number];
 		return dato;	
 	}
-
-	public String serializeContact(String contacto) throws ClientProtocolException, IOException {
-		Contacto contactoRN = new Contacto();
-		JSONObject object = new JSONObject(contacto);
-		contactoRN.setName(new Name(object.getString(UriTransformer.JsonTransformerJSON("firstname")), 
-				object.getString(UriTransformer.JsonTransformerJSON("lastname"))));
-		contactoRN.setEmails(new Emails(object.getString(UriTransformer.JsonTransformerJSON("emailaddress")),
-				new AddressType()));
-		ObjectMapper obj = new ObjectMapper();
-		return obj.writeValueAsString(contactoRN).toString();
-   	}
-	
 	
 	public boolean checkUserExist(String contacto) throws Exception {
 		
